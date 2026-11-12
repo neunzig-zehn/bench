@@ -65,3 +65,7 @@ reads `results/latest/{summary,meta}.json` at build time. To publish a run, copy
 - One sample per task in the published run, so single slips move task scores by several points.
 - Docs and Calc are saturated: strong models reach 100 on every task. They still compare time and cost.
 - Tasks are public, so future models may have seen them.
+
+## License
+
+[MIT](LICENSE), covering the harness, tasks, and results.
