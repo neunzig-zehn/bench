@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bench",
+  "account_id": "ebfb2f16ef3d6d213eba479e6543cc0c",
+  "main": "@tanstack/react-start/server-entry",
+  "compatibility_date": "2026-09-28",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "routes": [{ "pattern": "bench.9010.berlin", "custom_domain": true }],
+  "observability": { "enabled": true }
+}

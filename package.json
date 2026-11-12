@@ -1,5 +1,6 @@
 {
-  "name": "the-last-10",
+  "name": "bench",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,5 +12,8 @@
   "devDependencies": {
     "@types/bun": "^1.4.4",
     "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
   }
 }

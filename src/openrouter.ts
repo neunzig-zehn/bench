@@ -141,7 +141,7 @@ export const chat = async (
         headers: {
           Authorization: `Bearer ${key}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "https://github.com/neunzig-zehn/the-last-10",
+          "HTTP-Referer": "https://github.com/neunzig-zehn/bench",
           "X-Title": "The Last 10",
         },
         body: request,

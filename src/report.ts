@@ -117,6 +117,31 @@ export const formatMarkdown = (summary: Summary, title = "The Last 10 results") 
     ),
     "",
   );
+  const EFFORTS = ["none", "minimal", "low", "medium", "high", "xhigh"];
+  const split = (label: string) => {
+    const index = label.lastIndexOf(":");
+    const effort = index > 0 ? label.slice(index + 1) : "";
+    return EFFORTS.includes(effort) ? { base: label.slice(0, index), effort } : { base: label, effort: "default" };
+  };
+  const bases = [...new Set(summary.models.map((model) => split(model).base))];
+  if (bases.some((base) => summary.models.filter((model) => split(model).base === base).length > 1)) {
+    lines.push("## Reasoning levels", "");
+    lines.push(
+      table(
+        ["Model", "Effort", "Score", "Time per task", "Cost per task", "Steps"],
+        bases.flatMap((base) =>
+          summary.models
+            .filter((model) => split(model).base === base)
+            .sort((a, b) => EFFORTS.indexOf(split(a).effort) - EFFORTS.indexOf(split(b).effort))
+            .map((model) => {
+              const cell = summary.cells[model]?.overall;
+              return [base, split(model).effort, cell ? cell.score.toFixed(1) : "–", cell ? secs(cell.seconds) : "–", cell ? money(cell.costUsd) : "–", cell ? cell.steps.toFixed(1) : "–"];
+            }),
+        ),
+      ),
+      "",
+    );
+  }
   const langs = LANGS.filter((lang) => summary.models.some((model) => summary.langs[model]?.[lang]));
   if (langs.length > 1) {
     lines.push("## By language", "");

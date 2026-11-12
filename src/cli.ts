@@ -7,7 +7,8 @@
  *   bun report results/<run>
  *
  * Each run writes `results/<run>/records.jsonl` (one line per sample), `summary.json`,
- * `summary.md`, and the full transcripts under `traces/` (not committed).
+ * `summary.md`, `meta.json`, and the full transcripts under `traces/` (not committed). Running
+ * again into the same `--out` resumes: samples already in its records are skipped.
  */
 import { mkdir, appendFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
@@ -75,12 +76,20 @@ const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/gu, "-");
 const dir = values.out ?? `results/${stamp}`;
 await mkdir(`${dir}/traces`, { recursive: true });
 
-const jobs = models.flatMap((model) =>
-  tasks.flatMap((task) => Array.from({ length: samples }, (_, index) => ({ model, task, sample: index + 1 }))),
+const records: SampleRecord[] = (await Bun.file(`${dir}/records.jsonl`).text().catch(() => ""))
+  .split("\n")
+  .filter(Boolean)
+  .map((line) => JSON.parse(line) as SampleRecord);
+const recorded = new Set(records.map((record) => `${record.effort ? `${record.model}:${record.effort}` : record.model}|${record.task}|${record.sample}`));
+const jobs = models
+  .flatMap((model) =>
+    tasks.flatMap((task) => Array.from({ length: samples }, (_, index) => ({ model, task, sample: index + 1 }))),
+  )
+  .filter(({ model, task, sample }) => !recorded.has(`${modelLabel(model)}|${task.id}|${sample}`));
+console.log(
+  `${jobs.length} runs: ${models.length} model(s) × ${tasks.length} task(s) × ${samples} sample(s), ${concurrency} at a time → ${dir}${records.length ? ` (resuming; ${records.length} sample(s) already recorded)` : ""}`,
 );
-console.log(`${jobs.length} runs: ${models.length} model(s) × ${tasks.length} task(s) × ${samples} sample(s), ${concurrency} at a time → ${dir}`);
 
-const records: SampleRecord[] = [];
 let done = 0;
 const queue = [...jobs];
 await Promise.all(
@@ -104,6 +113,14 @@ await Promise.all(
 );
 
 const summary = summarize(records);
+const { version } = (await Bun.file(new URL("../package.json", import.meta.url)).json()) as { version: string };
+const meta = {
+  date: new Date().toISOString().slice(0, 10),
+  version: version.replace(/\.0$/u, ""),
+  samples: Math.max(...records.map((record) => record.sample)),
+  models: summary.models,
+};
 await Bun.write(`${dir}/summary.json`, `${JSON.stringify(summary, null, 2)}\n`);
+await Bun.write(`${dir}/meta.json`, `${JSON.stringify(meta, null, 2)}\n`);
 await Bun.write(`${dir}/summary.md`, formatMarkdown(summary));
 console.log(`\n${formatMarkdown(summary)}`);
