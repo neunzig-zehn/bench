@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-12",
+  "version": "0.1",
+  "samples": 1,
+  "models": [
+    "openai/gpt-6.1-terra:low",
+    "openai/gpt-6.1-terra:medium",
+    "openai/gpt-6.1-terra:high",
+    "google/gemini-4-hydrogen:medium"
+  ]
+}
